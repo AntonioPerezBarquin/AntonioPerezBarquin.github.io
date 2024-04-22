@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bouncing Balls</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+
+    canvas {
+        display: block;
+    }
+</style>
+</head>
+<body>
+<canvas id="myCanvas"></canvas>
+<script>
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas width and height
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const balls = [];
+
+    // Function to generate random color
+    function getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    // Function to generate random size
+    function getRandomSize() {
+        return Math.floor(Math.random() * 30) + 10; // Random size between 10 and 40
+    }
+
+    // Ball object
+    class Ball {
+        constructor(x, y, dx, dy, radius, color) {
+            this.x = x;
+            this.y = y;
+            this.dx = dx;
+            this.dy = dy;
+            this.radius = radius;
+            this.color = color;
+        }
+
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        update() {
+            // Check collision with walls
+            if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
+                this.dx = -this.dx;
+                this.color = getRandomColor(); // Change color on collision
+                this.radius = getRandomSize(); // Change size on collision
+            }
+            if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
+                this.dy = -this.dy;
+                this.color = getRandomColor(); // Change color on collision
+                this.radius = getRandomSize(); // Change size on collision
+            }
+
+            // Update position
+            this.x += this.dx;
+            this.y += this.dy;
+
+            this.draw();
+        }
+    }
+
+    // Create balls
+    for (let i = 0; i < 10; i++) {
+        const radius = getRandomSize();
+        const x = Math.random() * (canvas.width - radius * 2) + radius;
+        const y = Math.random() * (canvas.height - radius * 2) + radius;
+        const dx = (Math.random() - 0.5) * 5; // Random speed for x direction
+        const dy = (Math.random() - 0.5) * 5; // Random speed for y direction
+        const color = getRandomColor();
+        balls.push(new Ball(x, y, dx, dy, radius, color));
+    }
+
+    // Animation loop
+    function animate() {
+        requestAnimationFrame(animate);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        balls.forEach(ball => {
+            ball.update();
+        });
+    }
+
+    animate();
+</script>
+</body>
+</html>

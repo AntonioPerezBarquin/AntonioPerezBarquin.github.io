@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ball Animation</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+
+    canvas {
+        display: block;
+    }
+</style>
+</head>
+<body>
+<canvas id="myCanvas"></canvas>
+<script>
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas width and height
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let balls = [];
+    let iteration = 0;
+    let interval;
+
+    // Function to generate random color
+    function getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    // Ball object
+    class Ball {
+        constructor(x, y, dx, dy, radius, color, moveFreely) {
+            this.x = x;
+            this.y = y;
+            this.dx = dx;
+            this.dy = dy;
+            this.radius = radius;
+            this.color = color;
+            this.moveFreely = moveFreely;
+        }
+
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        update() {
+            // Check collision with walls
+            if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
+                this.dx = -this.dx;
+                this.color = getRandomColor(); // Change color on collision
+            }
+            if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
+                this.dy = -this.dy;
+                this.color = getRandomColor(); // Change color on collision
+            }
+
+            // Update position
+            if (this.moveFreely) {
+                this.x += this.dx;
+                this.y += this.dy;
+            }
+
+            this.draw();
+        }
+
+        // Check collision with other balls
+        checkCollision() {
+            for (let i = 0; i < balls.length; i++) {
+                if (this !== balls[i]) {
+                    const distance = Math.sqrt((this.x - balls[i].x) ** 2 + (this.y - balls[i].y) ** 2);
+                    if (distance < this.radius + balls[i].radius) {
+                        balls.splice(balls.indexOf(this), 1); // Remove this ball
+                        balls.splice(balls.indexOf(balls[i]), 1); // Remove colliding ball
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    // Create balls
+    function createBalls() {
+        for (let i = 0; i < 30; i++) {
+            const radius = Math.random() * 20 + 10; // Random radius between 10 and 30
+            const x = Math.random() * (canvas.width - radius * 2) + radius;
+            const y = Math.random() * (canvas.height - radius * 2) + radius;
+            const dx = (Math.random() - 0.5) * 5; // Random speed for x direction
+            const dy = (Math.random() - 0.5) * 5; // Random speed for y direction
+            const color = getRandomColor();
+            balls.push(new Ball(x, y, dx, dy, radius, color, false));
+        }
+    }
+
+    function startAnimation() {
+        clearInterval(interval);
+        interval = setInterval(() => {
+            iteration++;
+            if (iteration <= 10) {
+                balls.forEach(ball => {
+                    ball.update();
+                });
+            } else {
+                balls.forEach(ball => {
+                    ball.moveFreely = true;
+                    ball.update();
+                    ball.checkCollision();
+                });
+            }
+            if (iteration === 20) {
+                clearInterval(interval);
+                balls = []; // Reset balls array
+                iteration = 0;
+                createBalls();
+                startAnimation();
+            }
+        }, 1000 / 60); // 60 frames per second
+    }
+
+    // Animation loop
+    function animate() {
+        createBalls();
+        startAnimation();
+    }
+
+    animate();
+</script>
+</body>
+</html>
